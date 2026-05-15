@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaVie Comp Room Request</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;min-height:100vh;padding:1.5rem}
+.app{max-width:700px;margin:0 auto}
+.header{display:flex;align-items:center;gap:16px;background:#000;border-radius:12px;padding:14px 20px;margin-bottom:1.25rem}
+.header img{height:48px;width:auto}
+.header-text h1{font-size:18px;font-weight:500;color:#fff}
+.header-text p{font-size:12px;color:rgba(255,255,255,0.6);margin-top:3px}
+.banner{border-radius:8px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.banner.ok{background:#f0fdf4;border:0.5px solid #22c55e;color:#166534}
+.banner.err{background:#fef2f2;border:0.5px solid #ef4444;color:#991b1b}
+.card{background:#fff;border:0.5px solid #e5e5e5;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:12px;font-weight:500;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;color:#555}
+.field input,.field select,.field textarea{font-size:14px;width:100%;padding:8px 10px;border:0.5px solid #ccc;border-radius:8px;outline:none;background:#fff;color:#111}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#555}
+.field textarea{resize:vertical;min-height:70px;font-family:inherit}
+.field input.error{border-color:#ef4444}
+.field .hint{font-size:11px;color:#999}
+.field .hint.err{color:#ef4444}
+.nights-badge{background:#eff6ff;color:#1d4ed8;font-size:13px;font-weight:500;padding:5px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}
+.actions{display:flex;gap:10px;margin-top:1.25rem}
+.btn-wa{flex:1;padding:10px;font-size:14px;font-weight:500;background:#f0fdf4;color:#166534;border:0.5px solid #22c55e;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-wa:hover{opacity:.85}
+.btn-wa:disabled{opacity:.5;cursor:not-allowed}
+.btn-sec{flex:1;padding:10px;font-size:14px;cursor:pointer;border-radius:8px;border:0.5px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-sec:hover{background:#f5f5f5}
+.log-wrap{overflow-x:auto}
+.log-table{width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed}
+.log-table th{text-align:left;color:#666;font-weight:500;padding:6px 8px;border-bottom:0.5px solid #e5e5e5;white-space:nowrap}
+.log-table td{padding:7px 8px;border-bottom:0.5px solid #e5e5e5;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty-log{text-align:center;color:#aaa;font-size:13px;padding:2rem}
+.pill{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:500}
+.pill.ok{background:#f0fdf4;color:#166534}
+.pill.pending{background:#fff8e1;color:#92400e}
+.spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.divider{height:0.5px;background:#e5e5e5;margin:1rem 0}
+@media(max-width:500px){.grid2,.grid3{grid-template-columns:1fr}.actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <img src="lavie-logo.png" alt="LaVie logo" onerror="this.style.display='none'">
+  <div class="header-text">
+    <h1>Comp room request</h1>
+    <p>Auto-saves to Google Sheet · Sends via WhatsApp</p>
+  </div>
+</div>
+
+<div id="status-banner" style="display:none"></div>
+
+<div class="card">
+  <div class="card-title">Player info</div>
+  <div class="grid3">
+    <div class="field">
+      <label for="player-name">Player name</label>
+      <input type="text" id="player-name" placeholder="Full name">
+    </div>
+    <div class="field">
+      <label for="sharer">Sharer</label>
+      <input type="text" id="sharer" placeholder="Sharer name">
+    </div>
+    <div class="field">
+      <label for="mmid">MMID</label>
+      <input type="text" id="mmid" placeholder="10-digit number" maxlength="10" inputmode="numeric">
+      <span class="hint" id="mmid-hint">Exactly 10 digits</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="card-title" style="margin-top:.75rem">Room details</div>
+
+  <div class="grid2">
+    <div class="field">
+      <label for="checkin">Check-in date</label>
+      <input type="date" id="checkin">
+    </div>
+    <div class="field">
+      <label for="checkout">Check-out date</label>
+      <input type="date" id="checkout">
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <span style="font-size:13px;color:#555">Room nights:</span>
+    <span class="nights-badge"><i class="ti ti-moon"></i><span id="nights-count">—</span></span>
+  </div>
+
+  <div class="grid3">
+    <div class="field">
+      <label for="room-type">Room type</label>
+      <select id="room-type">
+        <option value="">Select</option>
+        <option>Superior</option>
+        <option>Deluxe</option>
+        <option>Premier</option>
+        <option>Bayview</option>
+        <option>Presidential</option>
+        <option>Exec Sky</option>
+        <option>Exec Sky Premier</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="breakfast">No. of breakfast</label>
+      <input type="number" id="breakfast" min="0" placeholder="0">
+    </div>
+    <div class="field">
+      <label for="payment-type">Payment type</label>
+      <select id="payment-type">
+        <option value="">Select</option>
+        <option>Casino</option>
+        <option>Pax</option>
+        <option>Voucher</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="card-title" style="margin-top:.75rem">Program & trip</div>
+
+  <div class="grid2">
+    <div class="field">
+      <label for="program">Program</label>
+      <input type="text" id="program" placeholder="Program name">
+    </div>
+    <div class="field">
+      <label for="trip-no">Trip no.</label>
+      <input type="number" id="trip-no" min="0" placeholder="0">
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="card-title" style="margin-top:.75rem">Authorization</div>
+
+  <div class="grid2">
+    <div class="field">
+      <label for="requestor">Requestor</label>
+      <select id="requestor">
+        <option value="">Select BD name</option>
+        <option>Aira De Costa</option>
+        <option>Charlie Verana</option>
+        <option>Cherryl Ortiz</option>
+        <option>Chia Mun Lee</option>
+        <option>Darren Tan</option>
+        <option>Daryl Kim</option>
+        <option>Dawn Yeoh</option>
+        <option>Jeelyn Go</option>
+        <option>Jennica Paguio</option>
+        <option>Jhamil Valencia</option>
+        <option>Jhay Galvez</option>
+        <option>JiYoon Lee (Leah)</option>
+        <option>Joan Liu</option>
+        <option>Laiza Leonardo</option>
+        <option>Rose Derapiza</option>
+        <option>Youngen Cho (Reina)</option>
+        <option>Zelline Cabitac</option>
+        <option>Ma. Jeelyn Go</option>
+        <option>Ryoya Mizuno</option>
+        <option>Joshua Teng</option>
+        <option>Jinhan Kim</option>
+        <option>Castre Troy Andalajao</option>
+        <option>Sugianto Law</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="approver">Approver</label>
+      <select id="approver">
+        <option value="">Select approver</option>
+        <option>Aira De Costa</option>
+        <option>Charlie Verana</option>
+        <option>Cherryl Ortiz</option>
+        <option>Chia Mun Lee</option>
+        <option>Darren Tan</option>
+        <option>Daryl Kim</option>
+        <option>Dawn Yeoh</option>
+        <option>Jeelyn Go</option>
+        <option>Jennica Paguio</option>
+        <option>Jhamil Valencia</option>
+        <option>Jhay Galvez</option>
+        <option>JiYoon Lee (Leah)</option>
+        <option>Joan Liu</option>
+        <option>Laiza Leonardo</option>
+        <option>Rose Derapiza</option>
+        <option>Youngen Cho (Reina)</option>
+        <option>Zelline Cabitac</option>
+        <option>Ma. Jeelyn Go</option>
+        <option>Ryoya Mizuno</option>
+        <option>Joshua Teng</option>
+        <option>Jinhan Kim</option>
+        <option>Castre Troy Andalajao</option>
+        <option>Sugianto Law</option>
+        <option>Yumi Lim</option>
+        <option>Sufot Al Ah Nom</option>
+        <option>Erika Cho</option>
+        <option>Danika Delda</option>
+        <option>Bryan Garcia</option>
+        <option>Harlene Posadas</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field" style="margin-top:4px">
+    <label for="remarks">Remarks</label>
+    <textarea id="remarks" placeholder="Optional notes..."></textarea>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-sec" onclick="exportCSV()"><i class="ti ti-file-spreadsheet"></i> Export CSV</button>
+  <button class="btn-wa" id="submit-btn" onclick="submitRequest()"><i class="ti ti-brand-whatsapp"></i> Submit & Send WhatsApp</button>
+</div>
+
+<div class="card" style="margin-top:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div class="card-title" style="margin-bottom:0">Request log</div>
+    <span style="font-size:12px;color:#aaa" id="log-count">0 entries</span>
+  </div>
+  <div id="log-container">
+    <div class="empty-log"><i class="ti ti-inbox" style="font-size:24px;display:block;margin-bottom:8px"></i>No requests yet this session</div>
+  </div>
+</div>
+</div>
+
+<script>
+const SHEET_URL='https://script.google.com/macros/s/AKfycbx9FRgmOIteJlEjgftsoSofPmM0yj3-5m9V0z7vgz0UxoCTTk7yIRdhivscGu_GKwE/exec';
+const log=[];
+const dailySeq={};
+
+function showBanner(msg,type){
+  const b=document.getElementById('status-banner');
+  b.className='banner '+type;
+  b.innerHTML=`<i class="ti ti-${type==='ok'?'circle-check':'alert-circle'}"></i> ${msg}`;
+  b.style.display='flex';
+  if(type==='ok')setTimeout(()=>b.style.display='none',4000);
+}
+
+function todayKey(){
+  const d=new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function generateBookingNumber(){
+  const key=todayKey();
+  if(!dailySeq[key])dailySeq[key]=0;
+  dailySeq[key]++;
+  return `CR-${key}-${String(dailySeq[key]).padStart(3,'0')}`;
+}
+
+function nowFormatted(){
+  const d=new Date();
+  return d.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})+', '+d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+}
+
+function computeNights(){
+  const ci=document.getElementById('checkin').value;
+  const co=document.getElementById('checkout').value;
+  const el=document.getElementById('nights-count');
+  if(!ci||!co){el.textContent='—';return 0;}
+  const diff=Math.round((new Date(co)-new Date(ci))/86400000);
+  if(diff<=0){el.textContent='Invalid';return 0;}
+  el.textContent=diff+(diff===1?' night':' nights');
+  return diff;
+}
+document.getElementById('checkin').addEventListener('change',computeNights);
+document.getElementById('checkout').addEventListener('change',computeNights);
+
+const mmidInput=document.getElementById('mmid');
+const mmidHint=document.getElementById('mmid-hint');
+mmidInput.addEventListener('input',()=>{
+  mmidInput.value=mmidInput.value.replace(/\D/g,'').slice(0,10);
+  const len=mmidInput.value.length;
+  if(len===0){mmidInput.classList.remove('error');mmidHint.textContent='Exactly 10 digits';mmidHint.className='hint';mmidHint.style.color='';}
+  else if(len<10){mmidInput.classList.add('error');mmidHint.textContent=`${len}/10 digits`;mmidHint.className='hint err';mmidHint.style.color='';}
+  else{mmidInput.classList.remove('error');mmidHint.textContent='✓ Valid MMID';mmidHint.className='hint';mmidHint.style.color='#16a34a';}
+});
+
+function getFormData(){
+  return{
+    playerName:document.getElementById('player-name').value.trim(),
+    sharer:document.getElementById('sharer').value.trim(),
+    mmid:document.getElementById('mmid').value.trim(),
+    checkin:document.getElementById('checkin').value,
+    checkout:document.getElementById('checkout').value,
+    nights:computeNights(),
+    roomType:document.getElementById('room-type').value,
+    breakfast:document.getElementById('breakfast').value||'0',
+    paymentType:document.getElementById('payment-type').value,
+    program:document.getElementById('program').value.trim(),
+    tripNo:document.getElementById('trip-no').value||'',
+    requestor:document.getElementById('requestor').value,
+    approver:document.getElementById('approver').value,
+    remarks:document.getElementById('remarks').value.trim(),
+    datetime:nowFormatted(),
+  };
+}
+
+function validate(d){
+  if(!d.playerName)return'Player name is required.';
+  if(d.mmid&&d.mmid.length!==10)return'MMID must be exactly 10 digits.';
+  if(!d.checkin||!d.checkout)return'Check-in and check-out dates are required.';
+  if(d.nights<=0)return'Check-out must be after check-in.';
+  if(!d.roomType)return'Please select a room type.';
+  if(!d.paymentType)return'Please select a payment type.';
+  if(!d.requestor)return'Please select a requestor.';
+  if(!d.approver)return'Please select an approver.';
+  return null;
+}
+
+function formatWA(d){
+  return`🏨 *COMP ROOM REQUEST*\n`+
+    `*Booking #:* ${d.bookingNo}\n\n`+
+    `*Player:* ${d.playerName}\n`+
+    `*Sharer:* ${d.sharer||'—'}\n`+
+    `*MMID:* ${d.mmid||'—'}\n\n`+
+    `*Room Type:* ${d.roomType}\n`+
+    `*Check-in:* ${d.checkin}\n`+
+    `*Check-out:* ${d.checkout}\n`+
+    `*Room Nights:* ${d.nights}\n`+
+    `*Breakfast:* ${d.breakfast} pax\n`+
+    `*Payment:* ${d.paymentType}\n\n`+
+    `*Program:* ${d.program||'—'}\n`+
+    `*Trip No.:* ${d.tripNo||'—'}\n\n`+
+    `*Requestor:* ${d.requestor}\n`+
+    `*Approver:* ${d.approver}\n`+
+    (d.remarks?`*Remarks:* ${d.remarks}\n`:'')+
+    `\n*Submitted:* ${d.datetime}`;
+}
+
+function renderLog(){
+  const c=document.getElementById('log-container');
+  document.getElementById('log-count').textContent=log.length+' entr'+(log.length===1?'y':'ies');
+  if(!log.length){c.innerHTML='<div class="empty-log"><i class="ti ti-inbox" style="font-size:24px;display:block;margin-bottom:8px"></i>No requests yet this session</div>';return;}
+  let h='<div class="log-wrap"><table class="log-table"><thead><tr><th style="width:18%">Booking #</th><th style="width:16%">Player</th><th style="width:12%">Room type</th><th style="width:11%">Check-in</th><th style="width:7%">Nights</th><th style="width:10%">Payment</th><th style="width:12%">Program</th><th style="width:14%">Sheet</th></tr></thead><tbody>';
+  log.forEach(r=>{
+    const pill=r.saved?'<span class="pill ok"><i class="ti ti-check"></i> Saved</span>':'<span class="pill pending"><i class="ti ti-clock"></i> Local only</span>';
+    h+=`<tr><td style="font-family:monospace;font-size:11px">${r.bookingNo}</td><td>${r.playerName}</td><td>${r.roomType}</td><td>${r.checkin}</td><td>${r.nights}</td><td>${r.paymentType}</td><td>${r.program||'—'}</td><td>${pill}</td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  c.innerHTML=h;
+}
+
+function clearForm(){
+  ['player-name','sharer','mmid','checkin','checkout','breakfast','program','trip-no','remarks'].forEach(id=>document.getElementById(id).value='');
+  ['room-type','payment-type','requestor','approver'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nights-count').textContent='—';
+  mmidHint.textContent='Exactly 10 digits';
+  mmidHint.className='hint';
+  mmidHint.style.color='';
+  mmidInput.classList.remove('error');
+}
+
+async function saveToSheet(d){
+  try{
+    await fetch(SHEET_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(d),headers:{'Content-Type':'application/json'}});
+    return true;
+  }catch(e){return false;}
+}
+
+async function submitRequest(){
+  const d=getFormData();
+  const err=validate(d);
+  if(err){alert(err);return;}
+  d.bookingNo=generateBookingNumber();
+  const btn=document.getElementById('submit-btn');
+  btn.innerHTML='<span class="spinner"></span> Saving...';
+  btn.disabled=true;
+  const saved=await saveToSheet(d);
+  d.saved=saved;
+  log.unshift(d);
+  renderLog();
+  btn.innerHTML='<i class="ti ti-brand-whatsapp"></i> Submit & Send WhatsApp';
+  btn.disabled=false;
+  window.open('https://wa.me/?text='+encodeURIComponent(formatWA(d)),'_blank');
+  clearForm();
+  showBanner(saved?'Saved to Google Sheet!':'Submitted! (Sheet save failed — check your connection)',saved?'ok':'err');
+}
+
+function exportCSV(){
+  if(!log.length){alert('No entries to export yet.');return;}
+  const headers=['Booking #','Player Name','Sharer','MMID','Check-in','Check-out','Room Nights','Room Type','Breakfast','Payment Type','Program','Trip No.','Requestor','Approver','Remarks','Submitted','Saved to Sheet'];
+  const rows=log.map(r=>[r.bookingNo,r.playerName,r.sharer,r.mmid,r.checkin,r.checkout,r.nights,r.roomType,r.breakfast,r.paymentType,r.program,r.tripNo,r.requestor,r.approver,r.remarks,r.datetime,r.saved?'Yes':'No']);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='comp_room_requests.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
