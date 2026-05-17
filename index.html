@@ -235,7 +235,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbzIpex4JJmjZ42GrMtBwbccKL6mbvw6MTS09aF6eMydUq8GcQKwy1PsAxLF5bVD95rR/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbykY4JdEvTNjsxOMJ9Mnd0ICXm-P6IXqbVO0HhEneF46HlcJJp8VPEXoZolsYpMz83F/exec';
 const log=[];
 const dailySeq={};
 
@@ -364,7 +364,24 @@ function clearForm(){
 
 async function saveToSheet(d){
   try{
-    const res = await fetch(SHEET_URL,{method:'POST',body:JSON.stringify(d),headers:{'Content-Type':'application/json'}});
+    const params = new URLSearchParams({
+      playerName: d.playerName,
+      sharer: d.sharer||'',
+      mmid: d.mmid||'',
+      checkin: d.checkin,
+      checkout: d.checkout,
+      nights: d.nights,
+      roomType: d.roomType,
+      breakfast: d.breakfast,
+      paymentType: d.paymentType,
+      program: d.program||'',
+      tripNo: d.tripNo||'',
+      requestor: d.requestor,
+      approver: d.approver,
+      remarks: d.remarks||'',
+      datetime: d.datetime
+    });
+    const res = await fetch(SHEET_URL + '?' + params.toString());
     const json = await res.json();
     if(json.result==='success' && json.bookingNo){
       d.bookingNo = json.bookingNo;
