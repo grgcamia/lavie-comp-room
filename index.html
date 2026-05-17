@@ -274,7 +274,27 @@ function computeNights(){
   el.textContent=diff+(diff===1?' night':' nights');
   return diff;
 }
-document.getElementById('checkin').addEventListener('change',computeNights);
+// Set minimum dates to today
+const todayStr = new Date().toISOString().split('T')[0];
+document.getElementById('checkin').min = todayStr;
+document.getElementById('checkout').min = todayStr;
+
+document.getElementById('checkin').addEventListener('change', function(){
+  // When checkin changes, set checkout min to day after checkin
+  const ci = this.value;
+  if(ci){
+    const nextDay = new Date(ci);
+    nextDay.setDate(nextDay.getDate()+1);
+    document.getElementById('checkout').min = nextDay.toISOString().split('T')[0];
+    // Reset checkout if it's now invalid
+    const co = document.getElementById('checkout').value;
+    if(co && new Date(co) <= new Date(ci)){
+      document.getElementById('checkout').value = '';
+      document.getElementById('nights-count').textContent='—';
+    }
+  }
+  computeNights();
+});
 document.getElementById('checkout').addEventListener('change',computeNights);
 
 const mmidInput=document.getElementById('mmid');
@@ -311,6 +331,11 @@ function validate(d){
   if(!d.playerName)return'Player name is required.';
   if(d.mmid&&d.mmid.length!==10)return'MMID must be exactly 10 digits.';
   if(!d.checkin||!d.checkout)return'Check-in and check-out dates are required.';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const checkinDate = new Date(d.checkin);
+  const checkoutDate = new Date(d.checkout);
+  if(checkinDate < today)return'Check-in date cannot be in the past.';
+  if(checkoutDate <= checkinDate)return'Check-out must be after check-in.';
   if(d.nights<=0)return'Check-out must be after check-in.';
   if(!d.roomType)return'Please select a room type.';
   if(!d.paymentType)return'Please select a payment type.';
