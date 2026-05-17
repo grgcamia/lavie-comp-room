@@ -383,11 +383,11 @@ async function submitRequest(){
   const d=getFormData();
   const err=validate(d);
   if(err){alert(err);return;}
-  d.bookingNo=generateBookingNumber(); // temporary, will be replaced by server
+  d.bookingNo='Pending...';
   const btn=document.getElementById('submit-btn');
   btn.innerHTML='<span class="spinner"></span> Saving...';
   btn.disabled=true;
-  const saved=await saveToSheet(d);
+  const saved=await saveToSheet(d); // booking number updated inside saveToSheet
   d.saved=saved;
   log.unshift(d);
   renderLog();
@@ -395,7 +395,7 @@ async function submitRequest(){
   btn.disabled=false;
   window.open('https://wa.me/?text='+encodeURIComponent(formatWA(d)),'_blank');
   clearForm();
-  showBanner(saved?'Saved to Google Sheet!':'Submitted! (Sheet save failed — check your connection)',saved?'ok':'err');
+  showBanner(saved?'Saved to Google Sheet! Booking #: '+d.bookingNo:'Submitted! (Sheet save failed — check your connection)',saved?'ok':'err');
 }
 
 function exportCSV(){
