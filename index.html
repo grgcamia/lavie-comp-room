@@ -398,8 +398,7 @@ function showBanner(msg,type){
 const todayStr=new Date().toISOString().split('T')[0];
 document.getElementById('checkin').min=todayStr;
 document.getElementById('checkout').min=todayStr;
-document.getElementById('a-checkin').min=todayStr;
-document.getElementById('a-checkout').min=todayStr;
+// Amendment forms allow past dates - no min restriction
 
 function setupDatePair(ciId,coId,nightsId){
   const ci=document.getElementById(ciId);
